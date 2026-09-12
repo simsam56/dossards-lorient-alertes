@@ -1,0 +1,69 @@
+name: Monitor dossards
+
+on:
+  schedule:
+    - cron: "30 6 * * *"
+    - cron: "30 16 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Monitor mode
+        required: true
+        default: check
+        type: choice
+        options:
+          - check
+          - inspect
+          - test-notification
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dossards-state
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout application
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Run tests
+        run: npm test
+
+      - name: Checkout state
+        id: state-checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: state
+          path: .monitor-state
+
+      - name: Run monitor
+        env:
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'check' }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: node scripts/run-monitor.mjs "$MODE" --state .monitor-state/state.json
+
+      - name: Persist state
+        if: always() && steps.state-checkout.outcome == 'success'
+        working-directory: .monitor-state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- state.json
+          if git diff --cached --quiet -- state.json; then
+            exit 0
+          fi
+          git commit -m "chore: persist dossard monitor state (${GITHUB_SHA})"
+          git pull --rebase origin state
+          git push origin HEAD:state
