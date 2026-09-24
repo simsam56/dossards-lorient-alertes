@@ -51,7 +51,7 @@ jobs:
       - name: Run monitor
         env:
           MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'check' }}
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC || 'dossards-lorient-s56-d72603b8cf322f36d67abea4b8013877' }}
         run: node scripts/run-monitor.mjs "$MODE" --state .monitor-state/state.json
 
       - name: Persist state
