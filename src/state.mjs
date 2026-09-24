@@ -29,14 +29,14 @@ export function planCheck({ state, readings, now }) {
     };
 
     if (reading.error || reading.status !== "open") continue;
+
     const firstSeen = previous === undefined;
-    const becameOpen = previous && previous.status !== "open" && previous.notifiedStatus !== "open";
-    if (!firstSeen && becameOpen) {
-      alerts.push(reading);
-      next.races[reading.id].notifiedStatus = "open";
-    } else if (firstSeen) {
+    if (firstSeen) {
       next.races[reading.id].notifiedStatus = reading.status;
+      continue;
     }
+
+    if (previous.notifiedStatus !== "open") alerts.push(reading);
   }
 
   return { state: next, alerts };

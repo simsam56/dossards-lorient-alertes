@@ -11,7 +11,7 @@ Ce n’est pas un calendrier exhaustif du Morbihan. Liste actuelle dans [`src/ra
 | La Lorientaise | 4 oct. | site OEPS |
 | Kewenn Trail / Val Quéven | 4 oct. | Miles Republic |
 | Trail Relais des Chapelles | 24 oct. | trailrelaischapelles56.fr |
-| Trail des Animaux de Lumière (Pont-Scorff) | 13 nov. | macadam-running.bzh |
+| Trail des Animaux de Lumière (Pont-Scorff) | 20 nov. | macadam-running.bzh |
 | 24h / 12h / 6h de Ploeren | 5–6 déc. | ploeren-endurance.fr |
 
 Hors liste volontairement : les salles / Festival Interceltique (autre repo), et les courses du calendrier Morbihan sans page officielle stable (Haras d’Hennebont 2026, Foulées de la Petite Mer, etc.).
@@ -24,13 +24,13 @@ La première lecture réussie d’une course déjà ouverte est **silencieuse** 
 
 ## Secret ntfy
 
-Créer un sujet dédié, distinct des sorties :
+Sans le secret GitHub `NTFY_TOPIC`, le contrôle continue de lire les pages et d’écrire l’état, mais les ouvertures restent en attente (pas de mail d’échec Actions). Créer un sujet dédié, distinct des sorties :
 
 ```bash
 gh secret set NTFY_TOPIC --repo simsam56/dossards-lorient-alertes
 ```
 
-Puis lancer manuellement `test-notification` depuis Actions.
+Puis lancer manuellement `test-notification` depuis Actions. L’ouverture en attente (ex. Trail des Animaux de Lumière 2026) partira au contrôle suivant.
 
 ## État
 

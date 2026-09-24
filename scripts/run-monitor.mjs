@@ -2,10 +2,11 @@ import { readFile } from "node:fs/promises";
 import { writeFile } from "node:fs/promises";
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { fetchPage, sendNtfy } from "../src/network.mjs";
 import { RACES } from "../src/races.mjs";
-import { planCheck, validateState } from "../src/state.mjs";
+import { acknowledgeAlert, planCheck, validateState } from "../src/state.mjs";
 import { classifyRegistration } from "../src/status.mjs";
 
 function errorMessage(error) {
@@ -64,6 +65,30 @@ async function inspect(environment) {
   return readings.some((reading) => reading.error) ? 1 : 0;
 }
 
+async function deliverAlerts(alerts, environment, state) {
+  let next = state;
+  let delivered = 0;
+  const failures = [];
+
+  for (const alert of alerts) {
+    try {
+      await sendNtfy({
+        topic: environment.NTFY_TOPIC,
+        title: `Dossards ouverts : ${alert.name}`,
+        message: `${alert.city} — ${alert.startsOn} — ${alert.distances.join(" / ")}`,
+        clickUrl: alert.url,
+        fetchImpl: environment.fetchImpl ?? fetch,
+      });
+      next = acknowledgeAlert(next, alert.id);
+      delivered += 1;
+    } catch (error) {
+      failures.push(`${alert.name}: ${errorMessage(error)}`);
+    }
+  }
+
+  return { state: next, delivered, failures };
+}
+
 async function check(args, environment) {
   const path = statePath(args);
   if (!path) throw new Error("Option --state obligatoire");
@@ -71,20 +96,26 @@ async function check(args, environment) {
   const readings = await readRaces(environment.fetchImpl ?? fetch);
   const planned = planCheck({ state, readings, now: new Date() });
 
-  for (const alert of planned.alerts) {
-    await sendNtfy({
-      topic: environment.NTFY_TOPIC,
-      title: `Dossards ouverts : ${alert.name}`,
-      message: `${alert.city} — ${alert.startsOn} — ${alert.distances.join(" / ")}`,
-      clickUrl: alert.url,
-      fetchImpl: environment.fetchImpl ?? fetch,
-    });
+  await saveState(path, planned.state);
+
+  const delivered = await deliverAlerts(planned.alerts, environment, planned.state);
+  if (delivered.delivered > 0 || delivered.failures.length > 0) {
+    await saveState(path, delivered.state);
   }
 
-  await saveState(path, planned.state);
   printInspection(readings);
-  console.log(`${planned.alerts.length} alerte(s)`);
-  return readings.every((reading) => reading.error) ? 1 : 0;
+  console.log(`${delivered.delivered}/${planned.alerts.length} alerte(s) envoyée(s)`);
+  for (const failure of delivered.failures) {
+    console.error(`Notification en attente — ${failure}`);
+  }
+  if (delivered.failures.length > 0 && !environment.NTFY_TOPIC) {
+    console.error(
+      "Secret NTFY_TOPIC manquant. Les ouvertures restent en attente et seront renvoyées une fois le secret défini : gh secret set NTFY_TOPIC --repo simsam56/dossards-lorient-alertes",
+    );
+  }
+
+  if (readings.every((reading) => reading.error)) return 1;
+  return 0;
 }
 
 async function testNotification(environment) {
@@ -99,7 +130,7 @@ async function testNotification(environment) {
   return 0;
 }
 
-async function main(argv = process.argv.slice(2), environment = process.env) {
+export async function main(argv = process.argv.slice(2), environment = process.env) {
   const [mode = "check", ...args] = argv;
   if (mode === "inspect") return inspect(environment);
   if (mode === "check") return check(args, environment);
@@ -107,9 +138,11 @@ async function main(argv = process.argv.slice(2), environment = process.env) {
   throw new Error(`Mode inconnu: ${mode}`);
 }
 
-try {
-  process.exitCode = await main();
-} catch (error) {
-  console.error(errorMessage(error));
-  process.exitCode = 1;
+if (fileURLToPath(import.meta.url) === process.argv[1]) {
+  try {
+    process.exitCode = await main();
+  } catch (error) {
+    console.error(errorMessage(error));
+    process.exitCode = 1;
+  }
 }

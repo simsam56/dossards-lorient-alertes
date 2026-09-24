@@ -7,24 +7,31 @@ async function sleep(ms) {
 
 export async function fetchPage(url, fetchImpl = fetch) {
   let lastError;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    const response = await fetchImpl(url, {
-      headers: {
-        Accept: "text/html,application/xhtml+xml",
-        "User-Agent": USER_AGENT,
-      },
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (response.ok) return response.text();
-    lastError = new Error(`HTTP ${response.status} pour ${url}`);
-    if (response.status !== 429 && response.status < 500) break;
-    await sleep(800 * (attempt + 1));
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await fetchImpl(url, {
+        headers: {
+          Accept: "text/html,application/xhtml+xml",
+          "User-Agent": USER_AGENT,
+        },
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (response.ok) return response.text();
+      lastError = new Error(`HTTP ${response.status} pour ${url}`);
+      if (response.status !== 429 && response.status < 500) break;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (lastError.name === "AbortError" || lastError.name === "TimeoutError") {
+        lastError = new Error(`Délai dépassé pour ${url}`);
+      }
+    }
+    await sleep(1_000 * (attempt + 1));
   }
   throw lastError;
 }
 
 export async function sendNtfy({ topic, title, message, clickUrl, fetchImpl = fetch }) {
-  if (!topic) throw new Error("NTFY_TOPIC manquant");
+  if (!topic) throw new Error("NTFY_TOPIC manquant — définir le secret GitHub NTFY_TOPIC");
   const response = await fetchImpl("https://ntfy.sh/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -37,11 +37,11 @@ export const RACES = Object.freeze([
     name: "Trail des Animaux de Lumière",
     city: "Pont-Scorff",
     kind: "trail",
-    startsOn: "2026-11-13",
+    startsOn: "2026-11-20",
     distances: ["11 km"],
     url: "https://macadam-running.bzh/le-trail-des-animaux-de-lumiere/",
     homeUrl: "https://macadam-running.bzh/le-trail-des-animaux-de-lumiere/",
-    notes: "500 dossards partis en ~2 h en 2025. Page 2026 pas encore publiée.",
+    notes: "500 dossards partis en ~2 h en 2025. Édition 2026 le 20 novembre ; lien Klikego 2026 en ligne.",
   },
   {
     id: "ploeren-24h",
