@@ -1,39 +1,39 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-24T20:40:10.230Z",
+  "updatedAt": "2026-09-25T12:05:01.308Z",
   "races": {
     "lorientaise": {
       "status": "closed",
       "url": "https://lalorientaise.oepslorient.org/inscription-en-ligne/",
-      "lastCheckedAt": "2026-09-24T20:40:10.230Z",
+      "lastCheckedAt": "2026-09-25T12:05:01.308Z",
       "lastError": null,
       "notifiedStatus": null
     },
     "kewenn-queven": {
       "status": "unknown",
       "url": "https://fr.milesrepublic.com/event/trail-du-val-queven-6011",
-      "lastCheckedAt": "2026-09-24T20:40:10.230Z",
+      "lastCheckedAt": "2026-09-25T12:05:01.308Z",
       "lastError": "HTTP 429 pour https://fr.milesrepublic.com/event/trail-du-val-queven-6011",
       "notifiedStatus": null
     },
     "relais-chapelles": {
       "status": "open",
       "url": "https://www.trailrelaischapelles56.fr/",
-      "lastCheckedAt": "2026-09-24T20:40:10.230Z",
+      "lastCheckedAt": "2026-09-25T12:05:01.308Z",
       "lastError": null,
       "notifiedStatus": "open"
     },
     "animaux-lumiere": {
       "status": "open",
       "url": "https://macadam-running.bzh/le-trail-des-animaux-de-lumiere/",
-      "lastCheckedAt": "2026-09-24T20:40:10.230Z",
+      "lastCheckedAt": "2026-09-25T12:05:01.308Z",
       "lastError": null,
       "notifiedStatus": "open"
     },
     "ploeren-24h": {
       "status": "open",
       "url": "https://www.ploeren-endurance.fr/24h/",
-      "lastCheckedAt": "2026-09-24T20:40:10.230Z",
+      "lastCheckedAt": "2026-09-25T12:05:01.308Z",
       "lastError": null,
       "notifiedStatus": "open"
     }
